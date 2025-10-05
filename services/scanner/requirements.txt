@@ -1,0 +1,9 @@
+﻿ccxt.async_support
+pandas
+numpy
+pandas_ta
+redis>=4.5.0
+PyYAML
+loguru
+python-dotenv
+aiohttp

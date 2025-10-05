@@ -1,0 +1,33 @@
+﻿exchange:
+  name: bitget
+
+redis:
+  url: redis://redis:6379/0
+
+scan:
+  min_volume: 5000000
+  spread_max: 0.005
+  atr_cutoff: 0.008
+  vol_spike_cutoff: 2.0
+  adx_cutoff: 20
+
+day:
+  timeframe: 1h
+  lookback_candles: 100
+  score_threshold: 0.7
+
+swing:
+  timeframe: 1d
+  lookback_candles: 200
+  score_threshold: 0.6
+
+scoring_weights:
+  liquidity_vol: 0.25
+  atr_percent: 0.25
+  volume_spike: 0.2
+  adx: 0.15
+  rsi_pullback: 0.15
+
+telegram:
+  enabled: true
+  chat_id: 123456789

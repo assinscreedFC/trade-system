@@ -1,0 +1,22 @@
+﻿version: "3.8"
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+  scanner:
+    build: ./services/scanner
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - BITGET_API_KEY=${BITGET_API_KEY}
+      - BITGET_SECRET=${BITGET_SECRET}
+    depends_on:
+      - redis
+  bot:
+    build: ./services/bot
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    depends_on:
+      - redis
