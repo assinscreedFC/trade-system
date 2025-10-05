@@ -1,5 +1,4 @@
-﻿ccxt.async_support
-pandas
+﻿pandas
 numpy
 pandas_ta
 redis>=4.5.0
