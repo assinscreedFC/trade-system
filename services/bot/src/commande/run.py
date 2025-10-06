@@ -17,7 +17,7 @@ async def _get_worker():
     return _worker
 
 async def cmd_run(message: types.Message):
-    ALERT_THRESHOLD = 0.7
+    ALERT_THRESHOLD = 0.6
     MAX_DISPLAY = 10
     global _worker, _worker_task, _alert_task
 
