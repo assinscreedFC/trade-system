@@ -16,10 +16,8 @@ REDIS_RESULT_PREFIX = "bot:result:"  # store last result per symbol as JSON
 ALERT_STREAM = os.getenv("ALERT_STREAM", "alerts_stream")
 ALERT_GROUP = os.getenv("ALERT_GROUP", "bots")
 ALERT_THRESHOLD = float(os.getenv("ALERT_THRESHOLD", "0.7"))  # default threshold
-THRESH = 0.6
-
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 5))
-SLEEP_BETWEEN_BATCHES = int(os.getenv("SLEEP_BETWEEN_BATCHES", 5 * 60))
+SLEEP_BETWEEN_BATCHES = int(os.getenv("SLEEP_BETWEEN_BATCHES", 1 * 60))
 
 class BotWorker:
     def __init__(self, redis_url=REDIS_URL, symbols_file=SYMBOL_LIST_FILE):
@@ -70,7 +68,8 @@ class BotWorker:
                     "summary": summary
                 }
                 # push to stream as JSON string under field "data"
-                await self.r.xadd(ALERT_STREAM, {"data": json.dumps(payload)}, maxlen=1000)
+                print("xass.r",payload)
+                await self.r.xadd(ALERT_STREAM, {"data": json.dumps(payload)})
         except Exception as e:
             # don't fail processing on alert publish failure
             print("publish alert error:", e)
@@ -109,7 +108,10 @@ class BotWorker:
             res = await self._process_symbol(symbol)
             results.append(res)
         new_idx = (idx + BATCH_SIZE) % n
+        if n==idx:
+            await self.r.flushdb()
         await self._set_index(new_idx)
+
         return results
 
     async def run_forever(self):
@@ -122,7 +124,7 @@ class BotWorker:
                     s1 = r.get("summary", {}).get("1h", {}).get("score", 0) or 0
                     s1d = r.get("summary", {}).get("1d", {}).get("score", 0) or 0
                     top = max(s1, s1d)
-                    if top >= THRESH:
+                    if top >= ALERT_THRESHOLD:
                         winners.append({"symbol": r["symbol"], "score_1h": s1, "score_1d": s1d})
                         with open(STORE_WINNER, "w", encoding="utf-8") as f:
                             json.dump(winners, f, ensure_ascii=False, indent=4)

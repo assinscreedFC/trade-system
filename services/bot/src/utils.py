@@ -67,7 +67,7 @@ def pretty_message_for_symbol(symbol: str, summary: dict, price: float,
         "",
         f"🔎 <b>Latest raw (1H)</b>: vol=<code>{raw_field(raw1h, 'volume')}</code>, atr%=<code>{raw_field(raw1h, 'atr_pct')}</code>, adx=<code>{raw_field(raw1h, 'adx')}</code>, rsi=<code>{raw_field(raw1h, 'rsi')}</code>",
         f"🔎 <b>Latest raw (1D)</b>: vol=<code>{raw_field(raw1d, 'volume')}</code>, atr%=<code>{raw_field(raw1d, 'atr_pct')}</code>, adx=<code>{raw_field(raw1d, 'adx')}</code>, rsi=<code>{raw_field(raw1d, 'rsi')}</code>",
-        f"LINK TRADINGVIEW: https://fr.tradingview.com/chart/7ePXrLQz/?symbol=BITGET%3A{symbol}"
+        f"LINK TRADINGVIEW: https://fr.tradingview.com/chart/?symbol=BITGET%3A{symbol}"
     ]
     return "\n".join(lines)
 
@@ -124,11 +124,14 @@ async def compute_price_and_changes(symbol: str):
 
 async def alert_listener(bot: Bot, chat_id: int, redis_url: str = REDIS_URL):
     r = aioredis.from_url(redis_url, decode_responses=True)
+
     last_id = "$"
     while True:
         try:
-            streams = await r.xread({ALERT_STREAM: last_id}, block=5000, count=50)
+            streams = await r.xread({ALERT_STREAM: last_id}, block=20000, count=50)
+            print('no streams', streams)
             if not streams:
+                #print('no streams',streams)
                 continue
             for _, messages in streams:
                 for msg_id, fields in messages:
@@ -137,8 +140,10 @@ async def alert_listener(bot: Bot, chat_id: int, redis_url: str = REDIS_URL):
                         payload = json.loads(raw)
                     except Exception:
                         payload = {"raw": raw}
-                    text = format_winner_message(payload.get("symbol", "UNK"), payload.get("summary", {}), None, None,
-                                                 None, None)
+
+                    price_now, pct_1h, pct_24h, pct_7d = await compute_price_and_changes(payload.get("symbol", "UNK"))
+                    text = format_winner_message(payload.get("symbol", "UNK"), payload.get("summary", {}), price_now, pct_1h,
+                                                 pct_24h, pct_7d)
                     try:
                         await bot.send_message(chat_id, text, parse_mode="HTML")
                     except Exception as e:

@@ -17,7 +17,7 @@ async def _get_worker():
     return _worker
 
 async def cmd_run(message: types.Message):
-    ALERT_THRESHOLD = 0.6
+    ALERT_THRESHOLD = 0.7
     MAX_DISPLAY = 10
     global _worker, _worker_task, _alert_task
 
@@ -80,6 +80,7 @@ async def cmd_run(message: types.Message):
     for sym, summary, top in winners[:MAX_DISPLAY]:
         try:
             price_now, pct_1h, pct_24h, pct_7d = await compute_price_and_changes(sym)
+            #print(sym, summary, price_now, pct_1h, pct_24h, pct_7d)
         except Exception:
             price_now = pct_1h = pct_24h = pct_7d = None
         msg = format_winner_message(sym, summary, price_now, pct_1h, pct_24h, pct_7d)
